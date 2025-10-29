@@ -1,0 +1,54 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta http-equiv="X-UA-Compatible" content="ie=edge"><title>PCB-EDA论文阅读1 | Self Blogs</title><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.staticfile.org/font-awesome/4.7.0/css/font-awesome.min.css"><script src="/js/third-party/jquery.min.js">           </script><script src="/js/third-party/velocity.min.js">           </script><script src="/js/third-party/velocity.ui.min.js">           </script><link rel="icon" href="/img/favicon.ico"><meta name="generator" content="Hexo 7.3.0"></head><body><nav id="nav-bar"><nav class="clear-fix" id="nav-container"><div class="pull-left" id="page-home"><a href="../../../../index.html">Self Blogs</a></div><i class="fa fa-bars pull-right" id="toggle-nav" aria-hidden="true"></i><ul class="pull-right" id="navs"><li><a class="nav" href="../../../../index.html">Home</a></li><li><a class="nav" href="../../../../tags">Tags</a></li><li><a class="nav" href="../../../../categories">Categories</a></li><li><a class="nav" href="../../../../about">About</a></li></ul></nav></nav><header id="header-info"><div id="header-container"><div id="site-info"><div id="terminal-pl"><div id="top-bar"><ul id="control"><li class="btn"></li><li class="btn"></li><li class="btn"></li></ul><div id="file-path"><i class="fa fa-folder folder-ic" aria-hidden="true"></i> Jz-Wen 10 X 10</div></div><div id="code-pl">Jz-Wen:~/blog$
+<span class="code-pl-input">source &quot;PCB-EDA论文阅读1.sh&quot;</span><br><br>Jz-Wen:~/blog$
+<span class="code-pl-input">printenv</span><br><span class="code-pl-output">CREATED_DATE = 2024-09-09</span><br><span class="code-pl-output">UPDATED_DATE = 2025-10-29</span><br><span class="code-pl-output">TAGS =</span><span class="code-pl-output"> </span><span class="code-pl-output"></span><br><span class="code-pl-output">CATEGORIES =</span><span class="code-pl-output"> </span><span class="code-pl-output"></span><br><br>Jz-Wen:~/blog$
+<span class="code-pl-input">grep -lr $TAGS post</span><br><br><!--if page.next| > .prev
+br
+a(href=url_for(page.next.path))
+  span.answer= page.next.title
+br
+br--><!--if page.prev| > .next
+br
+a(href=url_for(page.prev.path))
+  span.answer= page.prev.title--></div></div></div></div></header><div id="content-outer"><div id="content-inner"><article id="post"><a class="article-title">PCB-EDA论文阅读1</a><time class="article-date"><i class="fa fa-calendar" aria-hidden="true"></i> 2024-09-09</time><h1 id="A-Unified-Printed-Circuit-Board-Routing-Algorithm-With-Complicated-Constraints-and-Differential-Pairs"><a href="#A-Unified-Printed-Circuit-Board-Routing-Algorithm-With-Complicated-Constraints-and-Differential-Pairs" class="headerlink" title="A Unified Printed Circuit Board Routing Algorithm With Complicated Constraints and Differential Pairs"></a>A Unified Printed Circuit Board Routing Algorithm With Complicated Constraints and Differential Pairs</h1><h1 id="摘要内容："><a href="#摘要内容：" class="headerlink" title="摘要内容："></a>摘要内容：</h1><p>前工作都关注点在BGA逃逸布线上。作者认为现在很多板子除了BGA以外还有很多类型，想提出一种实际的全板布线通用算法</p>
+<span id="more"></span>
+
+<p><img src="image-20250909091506750.png" alt="image-20250909091506750"></p>
+<p>论文提出了与直接走线的区别，直接走线会产生间距违规，而通过打孔的方式生成过孔后再在其他层进行走线效果更好（虽然这在使用EDA软件进行手工布线很容易，但是在自动布线是一个挑战）。因此多层布线时本文的一个点。这个布线框架可以<u>处理差分对，电源以及地网络，还有其他普通网络</u>。这个框架使用的是基于网格的代价计算的A*算法。</p>
+<h1 id="抽象的问题描述"><a href="#抽象的问题描述" class="headerlink" title="抽象的问题描述"></a>抽象的问题描述</h1><p>多层PCB布线问题：给定一些表贴焊盘，一些通孔焊盘，网表$N$，规则，连接所有网络$n_i\in N$ ，来保证这里没有设计规则违规，并且线程最短</p>
+<h1 id="本文使用的规则"><a href="#本文使用的规则" class="headerlink" title="本文使用的规则"></a>本文使用的规则</h1><ol>
+<li>不允许同一层的的线段相交，并且需要保持特定的安全间距</li>
+<li>布线角度可以是90度或者135度，但不能是45度，（直角钝角可以，但是锐角不行）</li>
+<li>布线进入焊盘不应该锐角进入，并且线经过焊盘必须留出一定的间隔</li>
+<li>当布线中有有3段相交时应该保持Y形状而不是T形状</li>
+<li>差分对应该靠得近，并且保持相同长度</li>
+</ol>
+<p><img src="image-20250909095936149.png" alt="image-20250909095936149"></p>
+<h1 id="本文算法结构"><a href="#本文算法结构" class="headerlink" title="本文算法结构"></a>本文算法结构</h1><p>本文的结构如下，首先根据任意形状的焊盘来初始化布线网格。然后迭代进行布线，布线结束后再进行规则检查并处理违规情况。</p>
+<img src="./PCB-EDA%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB1/image-20250909100353557.png" alt="image-20250909100353557" style="zoom:67%;" />
+
+
+
+<h1 id="布线网格初始化"><a href="#布线网格初始化" class="headerlink" title="布线网格初始化"></a>布线网格初始化</h1><p>将表贴焊盘和通孔焊盘、另外加上一些障碍区域 例如 禁布区域等 栅格化到布线网格中去。</p>
+<p><img src="image-20250909133823700.png" alt="image-20250909133823700"></p>
+<h1 id="迭代PCB布线"><a href="#迭代PCB布线" class="headerlink" title="迭代PCB布线"></a>迭代PCB布线</h1><p>A*搜索算法是通过代价函数，可以使A搜索适应不同路由目标的需要。作者认为之前的算法都是分开计算每一种情况的代价的，如电源网络，差分对网络等。这篇文章统一进行处理，一起把这些加到代价函数中去考虑布线的生成。</p>
+<p>作者提了一下A*算法：<br>$$<br>f(x) &#x3D; g(x) + h(x)<br>$$<br>这是个很经典的公式，其中g(x)可以表示从起点到现在的点x的代价，h(x)可以表示为从现在的点x到终点的估算代价。因为本文中支持斜着布线也就是45°和135°的布线，所以h(x)被写成了<br>$$<br>minD &#x3D; min(|x.x-t.x|,|x.y-t.y|)<br>$$</p>
+<p>$$<br>maxD &#x3D; max(|x.x-t.x|,|x.y-t.y|)<br>$$</p>
+<p>$$<br>h(x) &#x3D; maxD - minD + \sqrt{2}*minD<br>$$</p>
+<p>因为网络是一个一个生成的，前面网络的连线会干扰后续的，因此前面的连线也应该被视为障碍区域，因此加了一个函数来根据到网络中心的距离来确定网格的cost来协调布线。<br>$$<br>OC_{\text{routed_net}}(r) &#x3D; H - H * \left( \frac{|r|^c}{w^c} \right)<br>$$</p>
+<p>$$<br>c_i &#x3D; c_{i-1} \cdot (\lambda + 1)<br>$$</p>
+<p>$OC_{\text{routed_net}}$表示障碍成本函数，r表示到网络中心的距离，w是网络宽度，H是一个很大的值，作者说是为了防止走线交叉，不太清楚这里c到底表示什么，$\lambda$是一个用户指定的值。</p>
+<h2 id="电源-地网络布线"><a href="#电源-地网络布线" class="headerlink" title="电源&#x2F;地网络布线"></a>电源&#x2F;地网络布线</h2><p>$$<br>g_p(x) &#x3D; \alpha * C_{\text{layer}} + \beta * C_{wl} + C_{\text{obstacle}}<br>$$</p>
+<p>$$<br>C_{wl} &#x3D; \gamma * C_{\text{Euclidean}} + C_{\text{layer_change}}<br>$$</p>
+<p>其中考虑了同一层上的$C_{\text{Euclidean}}$，和不同层$C_{\text{layer_change}}$走线方式的共同成本</p>
+<h2 id="差分对布线"><a href="#差分对布线" class="headerlink" title="差分对布线"></a>差分对布线</h2><p>思路是将两根线看成一个整体，布线之后再拆开的操作</p>
+<p>1.首先寻找pad的不同方向，生成候选点，找到能够让差分对pad能够同时布出平行的线的方向并候选点</p>
+<p>2.第二步是利用扩大线宽和间隙搜索区域，在pad对两侧的候选归并点之间进行布线</p>
+<p>3.将第二步的布线网解耦为两个布线网，同时解耦后的布线网的起始点和结束点仍然接近候选合并点</p>
+<p>4.最后，第四步是将每个解耦网路由到每侧相应的pad上，并在BGA中进行按需打孔</p>
+<p><img src="image-20250909170932985.png" alt="image-20250909170932985"></p>
+<h2 id="信号网络布线"><a href="#信号网络布线" class="headerlink" title="信号网络布线"></a>信号网络布线</h2><p>$$<br>g_s(x) &#x3D; \delta \cdot C_{\text{layer}} + \epsilon \cdot C_{wl} + \eta \cdot C_{\text{bend}} + C_{\text{obstacle}}<br>$$</p>
+<h1 id="根据设计规则进行后处理"><a href="#根据设计规则进行后处理" class="headerlink" title="根据设计规则进行后处理"></a>根据设计规则进行后处理</h1><p>在微调来降低违反设计规则的情况，通过填充额外的filler来修复这些违规</p>
+<p><img src="image-20250909170642606.png" alt="image-20250909170642606"></p>
+<p>蓝色部分是填充部分</p>
+</article><article id="post"><script type="text/javascript" src="https://utteranc.es/client.js" repo="xxx/blog_comments" issue-term="pathname" theme="github-light" crossorigin="anonymous" async></script></article><nav id="pagination"><div class="pagination clear-fix"><div class="page-prev pull-left"><a href="../../../10/08/kicad%E6%A0%BC%E5%BC%8F%E5%88%86%E6%9E%90/"><i class="fa fa-chevron-left"> </i><span>kicad格式分析</span></a></div><div class="page-next pull-right"><a href="../../08/PcbRouter%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB-%E7%BD%91%E6%A0%BC%E8%A1%A8%E7%A4%BA/"><span>PcbRouter代码阅读-网格表示</span><i class="fa fa-chevron-right"></i></a></div></div></nav></div></div><footer><div id="footer-inner"><div class="social-icons"></div><p class="design-info">Powered by <a href="https://hexo.io" target="_blank">Hexo</a> | Theme <a href="https://github.com/lazysheep666/terminal_theme" target="_blank">Teminal</a> (<a href="https://github.com/Tonny-Gu/terminal_theme" target="_blank">NekoDaemon Remix</a>)</p><p class="design-info"><a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank">CC-BY-SA 4.0</a> 
+Licensed | Copyright © 2025 Jz-Wen</p></div></footer><script src="/js/nav.js"></script><script src="/js/scroll.js"></script><script src="/js/index.js"></script></body></html>
